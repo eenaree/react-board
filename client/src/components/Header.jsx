@@ -50,7 +50,7 @@ const Header = () => {
         <Col span={12}>
           <Menu mode="horizontal">
             <Menu.Item key="all">
-              <Link to="/board">자유게시판</Link>
+              <Link to="/board/posts?page=1">자유게시판</Link>
             </Menu.Item>
           </Menu>
         </Col>

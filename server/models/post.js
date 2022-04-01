@@ -1,46 +1,40 @@
 const { DataTypes, Model } = require('sequelize');
-const bcrypt = require('bcrypt');
 
-class User extends Model {
+class Post extends Model {
   static init(sequelize) {
     return super.init(
       {
-        nickname: {
+        title: {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        email: {
+        contents: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true,
         },
-        password: {
+        fileUrl: {
           type: DataTypes.STRING,
-          allowNull: false,
+        },
+        views: {
+          type: DataTypes.INTEGER,
+          defaultValue: 0,
         },
       },
       {
         sequelize,
-        modelName: 'User',
-        tableName: 'users',
+        modelName: 'Post',
+        tableName: 'posts',
         charset: 'utf8',
         collate: 'utf8_general_ci',
         timestamps: true,
+        paranoid: true,
       }
     );
   }
 
   static associate(db) {
-    db.User.hasMany(db.Post);
-  }
-
-  async getHashedPassword(password) {
-    return await bcrypt.hash(password, 10);
-  }
-
-  async getPasswordComparedResult(password) {
-    return await bcrypt.compare(password, this.password);
+    db.Post.belongsTo(db.User);
   }
 }
 
-module.exports = User;
+module.exports = Post;
