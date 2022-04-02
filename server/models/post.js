@@ -34,6 +34,11 @@ class Post extends Model {
 
   static associate(db) {
     db.Post.belongsTo(db.User);
+    db.Post.belongsToMany(db.User, {
+      through: 'post_recommendation',
+      as: 'recommenders',
+    });
+    db.Post.belongsToMany(db.Comment, { through: 'post_comments' });
   }
 }
 

@@ -56,7 +56,14 @@ exports.getPost = async (req, res) => {
           ],
         ],
       },
-      include: [{ model: User, attributes: { exclude: ['password'] } }],
+      include: [
+        { model: User, attributes: { exclude: ['password'] } },
+        {
+          model: User,
+          as: 'recommenders',
+          attributes: { exclude: ['password'] },
+        },
+      ],
     });
 
     if (!post) {
@@ -86,6 +93,38 @@ exports.removePost = async (req, res) => {
   try {
     await Post.destroy({ where: { id: req.body.postId } });
     res.json({ success: true, message: '포스트 삭제 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.recommendPost = async (req, res) => {
+  try {
+    const post = await Post.findByPk(req.body.postId);
+    if (!post) {
+      return res
+        .status(400)
+        .json({ success: false, message: '포스트가 존재하지 않습니다.' });
+    }
+
+    await post.addRecommender(res.locals.user);
+    res.json({ success: true, message: '포스트 추천 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.unrecommendPost = async (req, res) => {
+  try {
+    const post = await Post.findByPk(req.body.postId);
+    if (!post) {
+      return res
+        .status(400)
+        .json({ success: false, message: '포스트가 존재하지 않습니다.' });
+    }
+
+    await post.removeRecommender(res.locals.user);
+    res.json({ success: true, message: '포스트 추천 취소 성공' });
   } catch (error) {
     console.error(error);
   }
