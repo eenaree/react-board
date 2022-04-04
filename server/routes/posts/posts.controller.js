@@ -50,7 +50,7 @@ exports.getPost = async (req, res) => {
             Sequelize.fn(
               'DATE_FORMAT',
               Sequelize.col('Post.createdAt'),
-              '%Y.%m.%d %h:%i'
+              '%Y.%m.%d %H:%i'
             ),
             'createdAt',
           ],
@@ -72,7 +72,7 @@ exports.getPost = async (req, res) => {
                 Sequelize.fn(
                   'DATE_FORMAT',
                   Sequelize.col('Comments.createdAt'),
-                  '%Y.%m.%d %h:%i'
+                  '%Y.%m.%d %H:%i'
                 ),
                 'createdAt',
               ],
@@ -91,7 +91,7 @@ exports.getPost = async (req, res) => {
                     Sequelize.fn(
                       'DATE_FORMAT',
                       Sequelize.col('Comments.createdAt'),
-                      '%Y.%m.%d %h:%i'
+                      '%Y.%m.%d %H:%i'
                     ),
                     'createdAt',
                   ],
@@ -184,7 +184,7 @@ exports.addComment = async (req, res) => {
             Sequelize.fn(
               'DATE_FORMAT',
               Sequelize.col('Comment.createdAt'),
-              '%Y.%m.%d %h:%i'
+              '%Y.%m.%d %H:%i'
             ),
             'createdAt',
           ],
@@ -240,7 +240,7 @@ exports.addReplyComment = async (req, res) => {
             Sequelize.fn(
               'DATE_FORMAT',
               Sequelize.col('Comment.createdAt'),
-              '%Y.%m.%d %h:%i'
+              '%Y.%m.%d %H:%i'
             ),
             'createdAt',
           ],
