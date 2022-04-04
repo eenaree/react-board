@@ -10,4 +10,9 @@ router.post('/removePost', isLoggedIn, controller.removePost);
 router.post('/recommendPost', isLoggedIn, controller.recommendPost);
 router.post('/unrecommendPost', isLoggedIn, controller.unrecommendPost);
 
+router.post('/addComment', isLoggedIn, controller.addComment);
+router.post('/removeComment', isLoggedIn, controller.removeComment);
+router.post('/addReplyComment', isLoggedIn, controller.addReplyComment);
+router.post('/removeReplyComment', isLoggedIn, controller.removeReplyComment);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-const { Post, User, Sequelize } = require('../../models');
+const { Comment, Post, User, Sequelize } = require('../../models');
 
 exports.writePost = async (req, res) => {
   try {
@@ -63,6 +63,43 @@ exports.getPost = async (req, res) => {
           as: 'recommenders',
           attributes: { exclude: ['password'] },
         },
+        {
+          model: Comment,
+          paranoid: false,
+          attributes: {
+            include: [
+              [
+                Sequelize.fn(
+                  'DATE_FORMAT',
+                  Sequelize.col('Comments.createdAt'),
+                  '%Y.%m.%d %h:%i'
+                ),
+                'createdAt',
+              ],
+            ],
+          },
+          include: [
+            { model: User, attributes: { exclude: ['password'] } },
+            {
+              model: Comment,
+              as: 'replies',
+              paranoid: false,
+              include: [{ model: User, attributes: { exclude: ['password'] } }],
+              attributes: {
+                include: [
+                  [
+                    Sequelize.fn(
+                      'DATE_FORMAT',
+                      Sequelize.col('Comments.createdAt'),
+                      '%Y.%m.%d %h:%i'
+                    ),
+                    'createdAt',
+                  ],
+                ],
+              },
+            },
+          ],
+        },
       ],
     });
 
@@ -125,6 +162,114 @@ exports.unrecommendPost = async (req, res) => {
 
     await post.removeRecommender(res.locals.user);
     res.json({ success: true, message: '포스트 추천 취소 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.addComment = async (req, res) => {
+  try {
+    const post = Post.findByPk(req.body.postId);
+    const newComment = Comment.create({
+      comment: req.body.comment,
+      UserId: res.locals.user.id,
+    });
+    const results = await Promise.all([post, newComment]);
+    await results[0].addComment(results[1]);
+
+    const commentWithUserInfo = await Comment.findByPk(results[1].id, {
+      attributes: {
+        include: [
+          [
+            Sequelize.fn(
+              'DATE_FORMAT',
+              Sequelize.col('Comment.createdAt'),
+              '%Y.%m.%d %h:%i'
+            ),
+            'createdAt',
+          ],
+        ],
+      },
+      include: [
+        { model: User, attributes: { exclude: ['password'] } },
+        { model: Comment, as: 'replies' },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: '댓글 추가 성공',
+      comment: commentWithUserInfo,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.removeComment = async (req, res) => {
+  try {
+    await Comment.destroy({ where: { id: req.body.commentId } });
+
+    const removedComment = await Comment.findByPk(req.body.commentId, {
+      paranoid: false,
+    });
+    res.json({
+      success: true,
+      message: '댓글 삭제 성공',
+      deletedAt: removedComment.deletedAt,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.addReplyComment = async (req, res) => {
+  try {
+    const comment = Comment.findByPk(req.body.commentId);
+    const newReplyComment = Comment.create({
+      comment: req.body.comment,
+      UserId: res.locals.user.id,
+    });
+    const results = await Promise.all([comment, newReplyComment]);
+    await results[0].addReply(results[1]);
+
+    const commentWithUserInfo = await Comment.findByPk(results[1].id, {
+      attributes: {
+        include: [
+          [
+            Sequelize.fn(
+              'DATE_FORMAT',
+              Sequelize.col('Comment.createdAt'),
+              '%Y.%m.%d %h:%i'
+            ),
+            'createdAt',
+          ],
+        ],
+      },
+      include: [{ model: User, attributes: { exclude: ['password'] } }],
+    });
+    res.json({
+      success: true,
+      message: '대댓글 추가 성공',
+      comment: commentWithUserInfo,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.removeReplyComment = async (req, res) => {
+  try {
+    await Comment.destroy({ where: { id: req.body.commentId } });
+
+    const removedComment = await Comment.findByPk(req.body.commentId, {
+      paranoid: false,
+    });
+    res.json({
+      success: true,
+      message: '대댓글 삭제 성공',
+      deletedAt: removedComment.deletedAt,
+    });
   } catch (error) {
     console.error(error);
   }

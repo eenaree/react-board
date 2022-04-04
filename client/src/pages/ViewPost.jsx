@@ -10,6 +10,7 @@ import {
 } from '../reducers/actions';
 import PostAction from '../components/PostAction';
 import PostRecommendation from '../components/PostRecommendation';
+import PostComments from '../components/PostComments';
 
 const ViewPost = () => {
   const params = useParams();
@@ -92,6 +93,7 @@ const ViewPost = () => {
             <PostRecommendation recommenders={post.recommenders} />
           </div>
           <PostAction />
+          <PostComments comments={post.Comments} />
         </>
       )}
     </>

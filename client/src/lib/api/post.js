@@ -9,6 +9,14 @@ const postAPI = {
   recommendPost: postId => localServer.post('/posts/recommendPost', { postId }),
   unrecommendPost: postId =>
     localServer.post('/posts/unrecommendPost', { postId }),
+
+  addComment: comment => localServer.post('/posts/addComment', comment),
+  removeComment: commentId =>
+    localServer.post('/posts/removeComment', { commentId }),
+  addReplyComment: comment =>
+    localServer.post('/posts/addReplyComment', comment),
+  removeReplyComment: commentId =>
+    localServer.post('/posts/removeReplyComment', { commentId }),
 };
 
 export default postAPI;
