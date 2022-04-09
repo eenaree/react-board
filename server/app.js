@@ -1,3 +1,4 @@
+const path = require('path');
 const morgan = require('morgan');
 const express = require('express');
 const session = require('express-session');
@@ -36,6 +37,7 @@ app.set('port', process.env.PORT || 8080);
 
 app.use(morgan('dev'));
 app.use(cors(corsOptions));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session(sessionOptions));

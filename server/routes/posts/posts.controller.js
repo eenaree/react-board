@@ -1,4 +1,4 @@
-const { Comment, Post, User, Sequelize } = require('../../models');
+const { Comment, File, Post, User, Sequelize } = require('../../models');
 
 exports.writePost = async (req, res) => {
   try {
@@ -7,6 +7,12 @@ exports.writePost = async (req, res) => {
       contents: req.body.contents,
       UserId: res.locals.user.id,
     });
+
+    const saveFiles = req.files.map((file) => {
+      File.create({ fileUrl: file.path, PostId: newPost.id });
+    });
+
+    await Promise.all(saveFiles);
 
     res.json({ success: true, message: '포스트 등록 성공', post: newPost });
   } catch (error) {
@@ -100,6 +106,7 @@ exports.getPost = async (req, res) => {
             },
           ],
         },
+        { model: File },
       ],
     });
 
@@ -117,7 +124,15 @@ exports.getPost = async (req, res) => {
 exports.editPost = async (req, res) => {
   try {
     const { postId, title, contents } = req.body;
-    await Post.update({ title, contents }, { where: { id: postId } });
+    const updatePost = Post.update(
+      { title, contents },
+      { where: { id: postId } }
+    );
+    const saveFiles = req.files.map((file) => {
+      File.create({ fileUrl: file.path, PostId: postId });
+    });
+
+    await Promise.all([updatePost, saveFiles]);
 
     const updatedPost = await Post.findByPk(req.body.postId);
     res.json({ success: true, message: '포스트 수정 성공', post: updatedPost });
@@ -270,6 +285,15 @@ exports.removeReplyComment = async (req, res) => {
       message: '대댓글 삭제 성공',
       deletedAt: removedComment.deletedAt,
     });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.removeFile = async (req, res) => {
+  try {
+    await File.destroy({ where: { id: req.body.fileId } });
+    res.json({ success: true, message: '첨부파일 삭제 성공' });
   } catch (error) {
     console.error(error);
   }

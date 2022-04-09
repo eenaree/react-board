@@ -28,7 +28,7 @@ const PostAction = () => {
   }
 
   function onClickEdit() {
-    navigate('/board/edit');
+    navigate(`/board/edit?post=${params.id}`);
   }
 
   function onClickDelete() {

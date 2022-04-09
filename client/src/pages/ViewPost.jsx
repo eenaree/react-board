@@ -46,7 +46,7 @@ const ViewPost = () => {
           <div
             css={css`
               margin: 10px 0;
-              > p {
+              > * {
                 padding: 10px;
                 margin: 0;
               }
@@ -83,7 +83,17 @@ const ViewPost = () => {
                 <span>등록일: {post.createdAt}</span>
               </span>
             </p>
-            <p className="contents">{post.contents}</p>
+            <div className="contents">
+              <p>{post.contents}</p>
+              {post.Files.map(file => (
+                <img
+                  key={file.id}
+                  src={`http://localhost:8080/${file.fileUrl}`}
+                  alt="attached pic"
+                  height="400"
+                />
+              ))}
+            </div>
           </div>
           <div
             css={css`

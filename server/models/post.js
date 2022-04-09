@@ -12,9 +12,6 @@ class Post extends Model {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        fileUrl: {
-          type: DataTypes.STRING,
-        },
         views: {
           type: DataTypes.INTEGER,
           defaultValue: 0,
@@ -39,6 +36,7 @@ class Post extends Model {
       as: 'recommenders',
     });
     db.Post.belongsToMany(db.Comment, { through: 'post_comments' });
+    db.Post.hasMany(db.File);
   }
 }
 
