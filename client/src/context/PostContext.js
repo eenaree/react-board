@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useRef } from 'react';
 import PropTypes from 'prop-types';
 import postReducer from '../reducers/post';
 
@@ -17,9 +17,10 @@ export const PostProvider = ({ children }) => {
     post: null,
     newPost: null,
   });
+  const viewsRef = useRef([]);
 
   return (
-    <PostContext.Provider value={{ postState: state, dispatch }}>
+    <PostContext.Provider value={{ postState: state, dispatch, viewsRef }}>
       {children}
     </PostContext.Provider>
   );

@@ -16,5 +16,6 @@ router.post('/addReplyComment', isLoggedIn, controller.addReplyComment);
 router.post('/removeReplyComment', isLoggedIn, controller.removeReplyComment);
 
 router.post('/removeFile', isLoggedIn, controller.removeFile);
+router.post('/incrementViews', controller.incrementViews);
 
 module.exports = router;

@@ -19,6 +19,8 @@ const postAPI = {
     localServer.post('/posts/removeReplyComment', { commentId }),
 
   removeFile: fileId => localServer.post('/posts/removeFile', { fileId }),
+  incrementViews: postId =>
+    localServer.post('/posts/incrementViews', { postId }),
 };
 
 export default postAPI;

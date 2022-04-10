@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import postAPI from '../lib/api/post';
 import usePost from '../context/PostContext';
+import useAuth from '../context/UserContext';
 import {
   GET_POST,
   GET_POST_FAILURE,
@@ -17,7 +18,51 @@ const ViewPost = () => {
   const {
     postState: { isLoading, isError, post },
     dispatch,
+    viewsRef,
   } = usePost();
+  const { user, clientRef } = useAuth();
+
+  const confirmViewedPost = useCallback(
+    postId => {
+      const currentUser = (user && user.email) || clientRef.current;
+      if (!currentUser) return;
+
+      const handleViewedPost = postId => {
+        viewsRef.current[postId - 1].push(currentUser);
+        setTimeout(() => {
+          const userIndex = viewsRef.current[postId - 1].findIndex(
+            user => user === currentUser
+          );
+          viewsRef.current[postId - 1].splice(userIndex, 1);
+        }, 1000 * 60 * 10);
+      };
+
+      const incrementViews = postId => {
+        postAPI
+          .incrementViews(postId)
+          .then(({ data }) => {
+            if (data.success) {
+              handleViewedPost(postId);
+            }
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      };
+
+      let viewedPost = false;
+
+      if (!viewsRef.current[postId - 1]) {
+        viewsRef.current[postId - 1] = [];
+      }
+      viewedPost = viewsRef.current[postId - 1].includes(currentUser);
+
+      if (!viewedPost) {
+        incrementViews(postId);
+      }
+    },
+    [user]
+  );
 
   useEffect(() => {
     function getPost(id) {
@@ -34,8 +79,10 @@ const ViewPost = () => {
           dispatch({ type: GET_POST_FAILURE, error: error.response.data });
         });
     }
+
     getPost(params.id);
-  }, [params.id]);
+    confirmViewedPost(params.id);
+  }, [params.id, confirmViewedPost]);
 
   if (isLoading) return <div>로딩 중...</div>;
   if (isError) return <div>{isError.message || '에러가 발생했습니다.'}</div>;

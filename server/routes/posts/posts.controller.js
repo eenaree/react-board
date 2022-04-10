@@ -298,3 +298,12 @@ exports.removeFile = async (req, res) => {
     console.error(error);
   }
 };
+
+exports.incrementViews = async (req, res) => {
+  try {
+    await Post.increment({ views: 1 }, { where: { id: req.body.postId } });
+    res.json({ success: true, message: '포스트 조회수 1 증가 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};

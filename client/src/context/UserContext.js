@@ -1,5 +1,12 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
-import React, { createContext, useContext, useState } from 'react';
+import axios from 'axios';
 
 const UserContext = createContext({
   user: '',
@@ -16,9 +23,27 @@ export const UserProvider = ({ children }) => {
   }
 
   const [user, setUser] = useState(getStoragedUser);
+  const clientRef = useRef();
+
+  const getClientIp = () => {
+    axios
+      .get('https://api.ipify.org?format=json')
+      .then(({ data }) => {
+        clientRef.current = data.ip;
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+
+  useEffect(() => {
+    if (!user) {
+      getClientIp();
+    }
+  }, [user]);
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, clientRef }}>
       {children}
     </UserContext.Provider>
   );
