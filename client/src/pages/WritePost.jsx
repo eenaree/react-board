@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Button } from 'antd';
@@ -29,7 +29,11 @@ const WritePost = () => {
       : { title: post.title, contents: post.contents };
   const [postInput, onChangePostInput] = useInput(initialPostInput);
   const [postFiles, setPostFiles] = useState([]);
-  const inputRef = useRef();
+  let postTitleInput = null;
+
+  const setPostTitleInputRef = element => {
+    postTitleInput = element;
+  };
 
   function onClickGoBack() {
     navigate(-1);
@@ -69,7 +73,7 @@ const WritePost = () => {
     e.preventDefault();
     if (!postInput.title) {
       alert('제목을 입력하세요');
-      return inputRef.current.focus();
+      return postTitleInput.focus();
     }
 
     const formData = new FormData();
@@ -106,6 +110,7 @@ const WritePost = () => {
       <form onSubmit={onSubmit} encType="multipart/form-data">
         <h2>글쓰기</h2>
         <input
+          ref={setPostTitleInputRef}
           type="text"
           name="title"
           css={css`
