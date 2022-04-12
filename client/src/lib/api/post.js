@@ -9,6 +9,14 @@ const postAPI = {
   recommendPost: postId => localServer.post('/posts/recommendPost', { postId }),
   unrecommendPost: postId =>
     localServer.post('/posts/unrecommendPost', { postId }),
+  searchPost: value =>
+    localServer.get('/posts/searchPost', {
+      params: {
+        page: value.page,
+        search_type: value.search_type,
+        keyword: value.keyword,
+      },
+    }),
 
   addComment: comment => localServer.post('/posts/addComment', comment),
   removeComment: commentId =>

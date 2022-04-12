@@ -1,7 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { css } from '@emotion/react';
+import usePost from '../context/PostContext';
 
 const tableStyle = css`
   width: 100%;
@@ -21,7 +21,11 @@ const tableStyle = css`
   }
 `;
 
-const PostsTable = ({ posts }) => {
+const PostsTable = () => {
+  const {
+    postState: { posts },
+  } = usePost();
+
   return (
     <table css={tableStyle}>
       <tbody>
@@ -58,10 +62,6 @@ const PostsTable = ({ posts }) => {
       </tbody>
     </table>
   );
-};
-
-PostsTable.propTypes = {
-  posts: PropTypes.array.isRequired,
 };
 
 export default PostsTable;

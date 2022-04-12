@@ -9,6 +9,7 @@ router.post('/editPost', isLoggedIn, uploadFiles, controller.editPost);
 router.post('/removePost', isLoggedIn, controller.removePost);
 router.post('/recommendPost', isLoggedIn, controller.recommendPost);
 router.post('/unrecommendPost', isLoggedIn, controller.unrecommendPost);
+router.get('/searchPost', controller.searchPost);
 
 router.post('/addComment', isLoggedIn, controller.addComment);
 router.post('/removeComment', isLoggedIn, controller.removeComment);

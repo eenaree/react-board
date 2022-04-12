@@ -11,6 +11,9 @@ import {
   REMOVE_POST,
   REMOVE_POST_FAILURE,
   REMOVE_POST_SUCCESS,
+  SEARCH_POST,
+  SEARCH_POST_FAILURE,
+  SEARCH_POST_SUCCESS,
   WRITE_POST,
   WRITE_POST_FAILURE,
   WRITE_POST_SUCCESS,
@@ -81,11 +84,25 @@ export default function postReducer(state, action) {
         isLoading: false,
         post: null,
       };
+    case SEARCH_POST:
+      return {
+        ...state,
+        isLoading: true,
+        isError: null,
+      };
+    case SEARCH_POST_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        posts: action.posts,
+        count: action.count,
+      };
     case WRITE_POST_FAILURE:
     case GET_POSTS_FAILURE:
     case GET_POST_FAILURE:
     case EDIT_POST_FAILURE:
     case REMOVE_POST_FAILURE:
+    case SEARCH_POST_FAILURE:
       return {
         ...state,
         isLoading: false,

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Comment, File, Post, User, Sequelize } = require('../../models');
 
 exports.writePost = async (req, res) => {
@@ -177,6 +178,124 @@ exports.unrecommendPost = async (req, res) => {
 
     await post.removeRecommender(res.locals.user);
     res.json({ success: true, message: '포스트 추천 취소 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.searchPost = async (req, res) => {
+  try {
+    if (req.query.search_type === 'all') {
+      const writer = await User.findOne({
+        where: { nickname: req.query.keyword },
+      });
+      const { count, rows } = await Post.findAndCountAll({
+        where: {
+          [Op.or]: [
+            { title: { [Op.substring]: req.query.keyword } },
+            { contents: { [Op.substring]: req.query.keyword } },
+            { UserId: writer && writer.id },
+          ],
+        },
+        attributes: {
+          include: [
+            [
+              Sequelize.fn(
+                'DATE_FORMAT',
+                Sequelize.col('Post.createdAt'),
+                '%y.%m.%d'
+              ),
+              'createdAt',
+            ],
+          ],
+        },
+        include: [{ model: User, attributes: { exclude: ['password'] } }],
+        limit: 10,
+        offset: req.query.page * 10 - 10,
+        order: [['createdAt', 'DESC']],
+      });
+
+      return res.json({ success: true, posts: rows, count });
+    }
+
+    if (req.query.search_type === 'title') {
+      const { count, rows } = await Post.findAndCountAll({
+        where: { title: { [Op.substring]: req.query.keyword } },
+        attributes: {
+          include: [
+            [
+              Sequelize.fn(
+                'DATE_FORMAT',
+                Sequelize.col('Post.createdAt'),
+                '%y.%m.%d'
+              ),
+              'createdAt',
+            ],
+          ],
+        },
+        include: [{ model: User, attributes: { exclude: ['password'] } }],
+        limit: 10,
+        offset: req.query.page * 10 - 10,
+        order: [['createdAt', 'DESC']],
+      });
+
+      return res.json({ success: true, posts: rows, count });
+    }
+
+    if (req.query.search_type === 'contents') {
+      const { count, rows } = await Post.findAndCountAll({
+        where: { contents: { [Op.substring]: req.query.keyword } },
+        attributes: {
+          include: [
+            [
+              Sequelize.fn(
+                'DATE_FORMAT',
+                Sequelize.col('Post.createdAt'),
+                '%y.%m.%d'
+              ),
+              'createdAt',
+            ],
+          ],
+        },
+        include: [{ model: User, attributes: { exclude: ['password'] } }],
+        limit: 10,
+        offset: req.query.page * 10 - 10,
+        order: [['createdAt', 'DESC']],
+      });
+
+      return res.json({ success: true, posts: rows, count });
+    }
+
+    if (req.query.search_type === 'writer') {
+      const writer = await User.findOne({
+        where: { nickname: req.query.keyword },
+      });
+      if (!writer) {
+        return res.json({ success: true, posts: [], count: 0 });
+      }
+
+      const { count, rows } = await Post.findAndCountAll({
+        where: { UserId: writer.id },
+        attributes: {
+          include: [
+            [
+              Sequelize.fn(
+                'DATE_FORMAT',
+                Sequelize.col('Post.createdAt'),
+                '%y.%m.%d'
+              ),
+              'createdAt',
+            ],
+          ],
+        },
+        include: [{ model: User, attributes: { exclude: ['password'] } }],
+        limit: 10,
+        offset: req.query.page * 10 - 10,
+        order: [['createdAt', 'DESC']],
+      });
+
+      return res.json({ success: true, posts: rows, count });
+    }
   } catch (error) {
     console.error(error);
   }
