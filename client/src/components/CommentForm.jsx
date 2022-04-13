@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import PropTypes from 'prop-types';
+import useAuth from '../context/UserContext';
 
 const CommentForm = ({ addComment }) => {
+  const { user } = useAuth();
   const [comment, setComment] = useState('');
   const onChangeComment = e => setComment(e.target.value);
 
@@ -27,7 +29,8 @@ const CommentForm = ({ addComment }) => {
           width: 100%;
           border: 1px solid #ddd;
         `}
-        placeholder="댓글을 입력하세요"
+        placeholder={user ? '댓글을 입력하세요' : '로그인이 필요합니다'}
+        disabled={!user}
       />
       <button
         css={css`
