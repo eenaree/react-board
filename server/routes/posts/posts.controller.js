@@ -88,10 +88,32 @@ exports.getPost = async (req, res) => {
           include: [
             { model: User, attributes: { exclude: ['password'] } },
             {
+              model: User,
+              as: 'likers',
+              attributes: { exclude: ['password'] },
+            },
+            {
+              model: User,
+              as: 'dislikers',
+              attributes: { exclude: ['password'] },
+            },
+            {
               model: Comment,
               as: 'replies',
               paranoid: false,
-              include: [{ model: User, attributes: { exclude: ['password'] } }],
+              include: [
+                { model: User, attributes: { exclude: ['password'] } },
+                {
+                  model: User,
+                  as: 'likers',
+                  attributes: { exclude: ['password'] },
+                },
+                {
+                  model: User,
+                  as: 'dislikers',
+                  attributes: { exclude: ['password'] },
+                },
+              ],
               attributes: {
                 include: [
                   [
@@ -326,6 +348,8 @@ exports.addComment = async (req, res) => {
       },
       include: [
         { model: User, attributes: { exclude: ['password'] } },
+        { model: User, as: 'likers', attributes: { exclude: ['password'] } },
+        { model: User, as: 'dislikers', attributes: { exclude: ['password'] } },
         { model: Comment, as: 'replies' },
       ],
     });
@@ -380,7 +404,11 @@ exports.addReplyComment = async (req, res) => {
           ],
         ],
       },
-      include: [{ model: User, attributes: { exclude: ['password'] } }],
+      include: [
+        { model: User, attributes: { exclude: ['password'] } },
+        { model: User, as: 'likers', attributes: { exclude: ['password'] } },
+        { model: User, as: 'dislikers', attributes: { exclude: ['password'] } },
+      ],
     });
     res.json({
       success: true,
@@ -404,6 +432,110 @@ exports.removeReplyComment = async (req, res) => {
       message: '대댓글 삭제 성공',
       deletedAt: removedComment.deletedAt,
     });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.addLikeComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByPk(req.body.commentId, {
+      include: [
+        { model: User, as: 'likers' },
+        { model: User, as: 'dislikers' },
+      ],
+    });
+    if (!comment) {
+      return res
+        .status(400)
+        .json({ success: false, message: '댓글이 존재하지 않습니다.' });
+    }
+
+    const isLiked = !!comment.likers.find(
+      (liker) => liker.id === res.locals.user.id
+    );
+    const isDisliked = !!comment.dislikers.find(
+      (disliker) => disliker.id === res.locals.user.id
+    );
+    const addLike = comment.addLiker(res.locals.user);
+    const removeDislike = comment.removeDisliker(res.locals.user.id);
+
+    if (isLiked === isDisliked) {
+      await addLike;
+      res.json({ success: true, message: '좋아요 추가 성공' });
+    } else if (isDisliked) {
+      Promise.all([removeDislike, addLike]).then(() => {
+        res.json({ success: true, message: '싫어요 제거, 좋아요 추가 성공' });
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.addDislikeComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByPk(req.body.commentId, {
+      include: [
+        { model: User, as: 'likers' },
+        { model: User, as: 'dislikers' },
+      ],
+    });
+    if (!comment) {
+      return res
+        .status(400)
+        .json({ success: false, message: '댓글이 존재하지 않습니다.' });
+    }
+
+    const isLiked = !!comment.likers.find(
+      (liker) => liker.id === res.locals.user.id
+    );
+    const isDisliked = !!comment.dislikers.find(
+      (disliker) => disliker.id === res.locals.user.id
+    );
+    const addDislike = comment.addDisliker(res.locals.user);
+    const removeLike = comment.removeLiker(res.locals.user);
+
+    if (isLiked === isDisliked) {
+      await addDislike;
+      res.json({ success: true, message: '싫어요 추가 성공' });
+    } else if (isLiked) {
+      Promise.all([removeLike, addDislike]).then(() => {
+        res.json({ success: true, message: '좋아요 제거, 싫어요 추가 성공' });
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.removeLikeComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByPk(req.body.commentId);
+    if (!comment) {
+      return res
+        .status(400)
+        .json({ success: false, message: '댓글이 존재하지 않습니다.' });
+    }
+
+    await comment.removeLiker(res.locals.user);
+    res.json({ success: true, message: '좋아요 제거 성공' });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.removeDislikeComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByPk(req.body.commentId);
+    if (!comment) {
+      return res
+        .status(400)
+        .json({ success: false, message: '댓글이 존재하지 않습니다.' });
+    }
+
+    await comment.removeDisliker(res.locals.user);
+    res.json({ success: true, message: '싫어요 제거 성공' });
   } catch (error) {
     console.error(error);
   }

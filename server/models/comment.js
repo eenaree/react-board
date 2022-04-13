@@ -34,6 +34,14 @@ class Comment extends Model {
       as: 'originalComments',
       foreignKey: 'originalCommentId',
     });
+    db.Comment.belongsToMany(db.User, {
+      through: 'like_comments',
+      as: 'likers',
+    });
+    db.Comment.belongsToMany(db.User, {
+      through: 'dislike_comments',
+      as: 'dislikers',
+    });
   }
 }
 

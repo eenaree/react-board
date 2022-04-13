@@ -37,6 +37,14 @@ class User extends Model {
       as: 'recommends',
     });
     db.User.hasMany(db.Comment);
+    db.User.belongsToMany(db.Comment, {
+      through: 'like_comments',
+      as: 'likes',
+    });
+    db.User.belongsToMany(db.Comment, {
+      through: 'dislike_comments',
+      as: 'dislikes',
+    });
   }
 
   async getHashedPassword(password) {

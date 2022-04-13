@@ -15,6 +15,14 @@ router.post('/addComment', isLoggedIn, controller.addComment);
 router.post('/removeComment', isLoggedIn, controller.removeComment);
 router.post('/addReplyComment', isLoggedIn, controller.addReplyComment);
 router.post('/removeReplyComment', isLoggedIn, controller.removeReplyComment);
+router.post('/addLikeComment', isLoggedIn, controller.addLikeComment);
+router.post('/addDislikeComment', isLoggedIn, controller.addDislikeComment);
+router.post('/removeLikeComment', isLoggedIn, controller.removeLikeComment);
+router.post(
+  '/removeDislikeComment',
+  isLoggedIn,
+  controller.removeDislikeComment
+);
 
 router.post('/removeFile', isLoggedIn, controller.removeFile);
 router.post('/incrementViews', controller.incrementViews);

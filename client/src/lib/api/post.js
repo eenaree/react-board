@@ -25,6 +25,14 @@ const postAPI = {
     localServer.post('/posts/addReplyComment', comment),
   removeReplyComment: commentId =>
     localServer.post('/posts/removeReplyComment', { commentId }),
+  addLikeComment: commentId =>
+    localServer.post('/posts/addLikeComment', { commentId }),
+  addDislikeComment: commentId =>
+    localServer.post('/posts/addDislikeComment', { commentId }),
+  removeLikeComment: commentId =>
+    localServer.post('/posts/removeLikeComment', { commentId }),
+  removeDislikeComment: commentId =>
+    localServer.post('/posts/removeDislikeComment', { commentId }),
 
   removeFile: fileId => localServer.post('/posts/removeFile', { fileId }),
   incrementViews: postId =>

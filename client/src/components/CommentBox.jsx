@@ -4,6 +4,7 @@ import { Comment } from 'antd';
 import { css } from '@emotion/react';
 import useAuth from '../context/UserContext';
 import ReplyComments from './ReplyComments';
+import CommentLikeAndDislikeButton from './CommentLikeAndDislikeButton';
 
 const CommentBox = ({ comment, removeComment }) => {
   const { user } = useAuth();
@@ -46,6 +47,10 @@ const CommentBox = ({ comment, removeComment }) => {
               답글 {replyCount > 0 && <strong>{replyCount}</strong>}
             </button>
           ),
+          <CommentLikeAndDislikeButton
+            key="comment-like-status"
+            comment={comment}
+          />,
         ]}
         css={css`
           position: relative;

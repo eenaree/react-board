@@ -9,6 +9,7 @@
   "author": "eenaree",
   "license": "ISC",
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "@babel/runtime-corejs3": "^7.17.7",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
