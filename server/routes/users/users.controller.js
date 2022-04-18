@@ -58,6 +58,11 @@ exports.register = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
+    if (!req.session.user) {
+      return res
+        .status(403)
+        .json({ success: false, message: '로그인 상태가 아닙니다.' });
+    }
     req.session.destroy();
     res.clearCookie('connect.sid');
     res.json({ success: true, message: '로그아웃 성공' });
