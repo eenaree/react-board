@@ -18,12 +18,10 @@ const uploader = multer({
   storage: diskStorage,
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    allowedMimeTypes.map((type) => {
-      if (file.mimetype !== type) {
-        return cb(new Error('허용되지 않은 파일 확장자입니다'), false);
-      }
-      cb(null, true);
-    });
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error('허용되지 않은 파일 확장자입니다'), false);
+    }
+    cb(null, true);
   },
 });
 
@@ -49,7 +47,7 @@ exports.uploadFiles = async (req, res, next) => {
   !fs.existsSync('uploads') && fs.mkdirSync('uploads');
 
   try {
-    uploader.array('files')(req, res, (error) => {
+    uploader.array('files')(req, res, error => {
       if (error instanceof multer.MulterError) {
         return res.status(400).json({ success: false, message: error.message });
       } else if (error) {
