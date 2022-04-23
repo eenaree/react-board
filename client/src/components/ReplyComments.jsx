@@ -14,7 +14,7 @@ import {
   REMOVE_REPLY_SUCCESS,
 } from '../reducers/actions';
 
-const ReplyComments = ({ commentId, replies, setReplyCount }) => {
+const ReplyComments = ({ deleted, commentId, replies, setReplyCount }) => {
   const [state, dispatch] = useReducer(replyReducer, {
     isLoading: false,
     isError: null,
@@ -62,7 +62,7 @@ const ReplyComments = ({ commentId, replies, setReplyCount }) => {
         margin-left: 20px;
       `}
     >
-      <CommentForm addComment={addReplyComment} />
+      <CommentForm addComment={addReplyComment} deleted={deleted} />
       {state.replies.length > 0 && (
         <CommentList
           comments={state.replies}
@@ -74,6 +74,7 @@ const ReplyComments = ({ commentId, replies, setReplyCount }) => {
 };
 
 ReplyComments.propTypes = {
+  deleted: PropTypes.bool.isRequired,
   commentId: PropTypes.number.isRequired,
   replies: PropTypes.array.isRequired,
   setReplyCount: PropTypes.func.isRequired,

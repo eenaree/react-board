@@ -43,7 +43,7 @@ const LikeAndDislikeButton = ({
 LikeAndDislikeButton.propTypes = {
   onClickLike: PropTypes.func.isRequired,
   onClickDislike: PropTypes.func.isRequired,
-  likeAction: PropTypes.oneOf(['liked', 'disliked', null]).isRequired,
+  likeAction: PropTypes.oneOf(['liked', 'disliked']),
   likers: PropTypes.number.isRequired,
   dislikers: PropTypes.number.isRequired,
 };

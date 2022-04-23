@@ -3,7 +3,7 @@ import { css } from '@emotion/react';
 import PropTypes from 'prop-types';
 import useAuth from '../context/UserContext';
 
-const CommentForm = ({ addComment }) => {
+const CommentForm = ({ addComment, deleted }) => {
   const { user } = useAuth();
   const [comment, setComment] = useState('');
   const onChangeComment = e => setComment(e.target.value);
@@ -29,8 +29,14 @@ const CommentForm = ({ addComment }) => {
           width: 100%;
           border: 1px solid #ddd;
         `}
-        placeholder={user ? '댓글을 입력하세요' : '로그인이 필요합니다'}
-        disabled={!user}
+        placeholder={
+          deleted
+            ? '댓글 등록이 불가합니다'
+            : user
+            ? '댓글을 입력하세요'
+            : '로그인이 필요합니다'
+        }
+        disabled={deleted || !user}
       />
       <button
         css={css`
@@ -39,7 +45,12 @@ const CommentForm = ({ addComment }) => {
           background-color: #f1f1f1;
           padding: 5px 0;
           cursor: pointer;
+          &:disabled {
+            background-color: #f8f8f8;
+            cursor: auto;
+          }
         `}
+        disabled={deleted || !user}
       >
         등록
       </button>
@@ -49,6 +60,7 @@ const CommentForm = ({ addComment }) => {
 
 CommentForm.propTypes = {
   addComment: PropTypes.func.isRequired,
+  deleted: PropTypes.bool,
 };
 
 export default CommentForm;

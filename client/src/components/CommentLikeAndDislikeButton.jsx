@@ -4,13 +4,15 @@ import LikeAndDislikeButton from './LikeAndDislikeButton';
 import useAuth from '../context/UserContext';
 import postAPI from '../lib/api/post';
 
-const CommentLikeAndDislikeButton = ({ comment }) => {
+const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
   const { user } = useAuth();
   const [likeAction, setLikeAction] = useState(getInitialLikeStatus);
   const [likers, setLikers] = useState(() => comment.likers.length);
   const [dislikers, setDislikers] = useState(() => comment.dislikers.length);
 
   function getInitialLikeStatus() {
+    if (!user) return null;
+
     const isLiked = !!comment.likers.find(liker => liker.id === user.id);
     const isDisliked = !!comment.dislikers.find(
       disliker => disliker.id === user.id
@@ -26,6 +28,10 @@ const CommentLikeAndDislikeButton = ({ comment }) => {
   }
 
   const onClickLike = () => {
+    if (deleted) {
+      alert('삭제된 댓글에는 좋아요 표시가 불가능합니다.');
+      return;
+    }
     if (!user) {
       alert('로그인이 필요합니다.');
       return;
@@ -38,6 +44,10 @@ const CommentLikeAndDislikeButton = ({ comment }) => {
   };
 
   const onClickDislike = () => {
+    if (deleted) {
+      alert('삭제된 댓글에는 싫어요 표시가 불가능합니다.');
+      return;
+    }
     if (!user) {
       alert('로그인이 필요합니다.');
       return;
@@ -120,6 +130,7 @@ const CommentLikeAndDislikeButton = ({ comment }) => {
 
 CommentLikeAndDislikeButton.propTypes = {
   comment: PropTypes.object.isRequired,
+  deleted: PropTypes.bool.isRequired,
 };
 
 export default CommentLikeAndDislikeButton;

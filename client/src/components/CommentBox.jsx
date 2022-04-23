@@ -34,7 +34,7 @@ const CommentBox = ({ comment, removeComment }) => {
         }
         datetime={comment.createdAt}
         actions={[
-          !comment.deletedAt && comment.replies && (
+          comment.replies && (
             <button
               onClick={toggleReply}
               css={css`
@@ -50,6 +50,7 @@ const CommentBox = ({ comment, removeComment }) => {
           <CommentLikeAndDislikeButton
             key="comment-like-status"
             comment={comment}
+            deleted={!!comment.deletedAt}
           />,
         ]}
         css={css`
@@ -73,6 +74,7 @@ const CommentBox = ({ comment, removeComment }) => {
       </Comment>
       {openReply && (
         <ReplyComments
+          deleted={!!comment.deletedAt}
           commentId={comment.id}
           replies={comment.replies}
           setReplyCount={setReplyCount}
