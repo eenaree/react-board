@@ -1,12 +1,13 @@
 const path = require('path');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const { merge } = require('webpack-merge');
 require('dotenv').config();
 
-module.exports = {
-  mode: 'development',
-  devtool: 'eval',
+const commonConfig = {
   resolve: {
     modules: ['node_modules'],
     extensions: ['.js', '.jsx', '.json', '.css'],
@@ -74,7 +75,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new ReactRefreshWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './src/index.html',
     }),
@@ -82,6 +82,12 @@ module.exports = {
       'process.env': JSON.stringify(process.env),
     }),
   ],
+};
+
+const developmentConfig = {
+  mode: 'development',
+  devtool: 'eval',
+  plugins: [new ReactRefreshWebpackPlugin()],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: '[name].[chunkhash].js',
@@ -97,4 +103,26 @@ module.exports = {
     historyApiFallback: true,
     compress: true,
   },
+};
+
+const productionConfig = {
+  mode: 'production',
+  devtool: 'hidden-source-map',
+  plugins: [
+    new CleanWebpackPlugin(),
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+    }),
+  ],
+  output: {
+    path: path.join(__dirname, 'dist'),
+    filename: '[name].[chunkhash].js',
+  },
+};
+
+module.exports = (env, argv) => {
+  if (argv.mode === 'production') {
+    return merge(commonConfig, productionConfig);
+  }
+  return merge(commonConfig, developmentConfig);
 };
