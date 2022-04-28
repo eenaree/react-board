@@ -35,7 +35,8 @@ class Post extends Model {
       through: 'post_recommendation',
       as: 'recommenders',
     });
-    db.Post.belongsToMany(db.Comment, { through: 'post_comments' });
+    db.Post.hasMany(db.Comment);
+    // db.Post.belongsToMany(db.Comment, { through: 'post_comments' });
     db.Post.hasMany(db.File);
   }
 }
