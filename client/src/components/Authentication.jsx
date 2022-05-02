@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Navigate, useLocation } from 'react-router-dom';
-import useAuth from '../context/UserContext';
+import { useUserState } from '../context/UserContext';
 
 const Authentication = ({ children }) => {
-  const { user } = useAuth();
+  const { user } = useUserState();
   const location = useLocation();
 
   if (!user) {

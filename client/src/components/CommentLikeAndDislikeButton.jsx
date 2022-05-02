@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import LikeAndDislikeButton from './LikeAndDislikeButton';
-import useAuth from '../context/UserContext';
+import { useUserState } from '../context/UserContext';
 import postAPI from '../lib/api/post';
 
 const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
-  const { user } = useAuth();
+  const { user } = useUserState();
   const [likeAction, setLikeAction] = useState(getInitialLikeStatus);
+  const [dislikeAction, setDislikeAction] = useState(getInitialDislikeStatus);
   const [likers, setLikers] = useState(() => comment.likers.length);
   const [dislikers, setDislikers] = useState(() => comment.dislikers.length);
 
@@ -14,17 +15,16 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
     if (!user) return null;
 
     const isLiked = !!comment.likers.find(liker => liker.id === user.id);
+    return isLiked ? 'liked' : null;
+  }
+
+  function getInitialDislikeStatus() {
+    if (!user) return null;
+
     const isDisliked = !!comment.dislikers.find(
       disliker => disliker.id === user.id
     );
-
-    if (isLiked === isDisliked) {
-      return null;
-    } else if (isLiked) {
-      return 'liked';
-    } else if (isDisliked) {
-      return 'disliked';
-    }
+    return isDisliked ? 'disliked' : null;
   }
 
   const onClickLike = () => {
@@ -39,6 +39,7 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
     if (likeAction === 'liked') {
       removeLikeComment(comment.id);
     } else {
+      dislikeAction === 'disliked' && removeDislikeComment(comment.id);
       addLikeComment(comment.id);
     }
   };
@@ -52,21 +53,21 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
       alert('로그인이 필요합니다.');
       return;
     }
-    if (likeAction === 'disliked') {
+    if (dislikeAction === 'disliked') {
       removeDislikeComment(comment.id);
     } else {
+      likeAction === 'liked' && removeLikeComment(comment.id);
       addDislikeComment(comment.id);
     }
   };
 
-  const addLikeComment = commentId => {
+  const addLikeComment = id => {
     postAPI
-      .addLikeComment(commentId)
+      .addLikeComment(id)
       .then(({ data }) => {
         if (data.success) {
           setLikeAction('liked');
           setLikers(prev => prev + 1);
-          setDislikers(prev => (prev ? prev - 1 : 0));
         }
       })
       .catch(error => {
@@ -74,14 +75,13 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
       });
   };
 
-  const addDislikeComment = commentId => {
+  const addDislikeComment = id => {
     postAPI
-      .addDislikeComment(commentId)
+      .addDislikeComment(id)
       .then(({ data }) => {
         if (data.success) {
-          setLikeAction('disliked');
+          setDislikeAction('disliked');
           setDislikers(prev => prev + 1);
-          setLikers(prev => (prev ? prev - 1 : 0));
         }
       })
       .catch(error => {
@@ -89,9 +89,9 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
       });
   };
 
-  const removeLikeComment = commentId => {
+  const removeLikeComment = id => {
     postAPI
-      .removeLikeComment(commentId)
+      .removeLikeComment(id)
       .then(({ data }) => {
         if (data.success) {
           setLikeAction(null);
@@ -103,12 +103,12 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
       });
   };
 
-  const removeDislikeComment = commentId => {
+  const removeDislikeComment = id => {
     postAPI
-      .removeDislikeComment(commentId)
+      .removeDislikeComment(id)
       .then(({ data }) => {
         if (data.success) {
-          setLikeAction(null);
+          setDislikeAction(null);
           setDislikers(prev => prev - 1);
         }
       })
@@ -122,6 +122,7 @@ const CommentLikeAndDislikeButton = ({ comment, deleted }) => {
       onClickLike={onClickLike}
       onClickDislike={onClickDislike}
       likeAction={likeAction}
+      dislikeAction={dislikeAction}
       likers={likers}
       dislikers={dislikers}
     />

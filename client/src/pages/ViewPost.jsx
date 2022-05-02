@@ -2,8 +2,8 @@ import React, { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import postAPI from '../lib/api/post';
-import usePost from '../context/PostContext';
-import useAuth from '../context/UserContext';
+import { usePostState, usePostDispatch } from '../context/PostContext';
+import { useUserState } from '../context/UserContext';
 import {
   GET_POST,
   GET_POST_FAILURE,
@@ -16,11 +16,11 @@ import PostComments from '../components/PostComments';
 const ViewPost = () => {
   const params = useParams();
   const {
-    postState: { isLoading, isError, post },
-    dispatch,
+    state: { isLoading, isError, post },
     viewsRef,
-  } = usePost();
-  const { user, clientRef } = useAuth();
+  } = usePostState();
+  const { dispatch } = usePostDispatch();
+  const { user, clientRef } = useUserState();
 
   const confirmViewedPost = useCallback(
     postId => {
@@ -64,25 +64,25 @@ const ViewPost = () => {
     [user]
   );
 
-  useEffect(() => {
-    function getPost(id) {
-      dispatch({ type: GET_POST });
-      postAPI
-        .getPost(id)
-        .then(({ data }) => {
-          if (data.success) {
-            dispatch({ type: GET_POST_SUCCESS, post: data.post });
-          }
-        })
-        .catch(error => {
-          console.error(error);
-          dispatch({ type: GET_POST_FAILURE, error: error.response.data });
-        });
-    }
+  const getPost = useCallback(id => {
+    dispatch({ type: GET_POST });
+    postAPI
+      .getPost(id)
+      .then(({ data }) => {
+        if (data.success) {
+          dispatch({ type: GET_POST_SUCCESS, post: data.post });
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        dispatch({ type: GET_POST_FAILURE, error: error.response.data });
+      });
+  }, []);
 
+  useEffect(() => {
     getPost(params.id);
     confirmViewedPost(params.id);
-  }, [params.id, confirmViewedPost]);
+  }, [params.id, getPost, confirmViewedPost]);
 
   if (isLoading) return <div>로딩 중...</div>;
   if (isError) return <div>{isError.message || '에러가 발생했습니다.'}</div>;

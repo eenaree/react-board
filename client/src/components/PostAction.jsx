@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'antd';
-import useAuth from '../context/UserContext';
-import usePost from '../context/PostContext';
+import { useUserState } from '../context/UserContext';
+import { usePostState, usePostDispatch } from '../context/PostContext';
 import postAPI from '../lib/api/post';
 import {
   REMOVE_POST,
@@ -12,11 +12,11 @@ import {
 import { css } from '@emotion/react';
 
 const PostAction = () => {
-  const { user } = useAuth();
+  const { user } = useUserState();
   const {
-    postState: { post },
-    dispatch,
-  } = usePost();
+    state: { post },
+  } = usePostState();
+  const { dispatch } = usePostDispatch();
   const navigate = useNavigate();
   const params = useParams();
   const location = useLocation();
@@ -28,7 +28,7 @@ const PostAction = () => {
   }
 
   function onClickEdit() {
-    navigate(`/board/edit?post=${params.id}`);
+    navigate(`/board/edit/${params.id}`);
   }
 
   function onClickDelete() {

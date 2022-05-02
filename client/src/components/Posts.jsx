@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Button, Pagination } from 'antd';
-import usePost from '../context/PostContext';
+import { usePostState, usePostDispatch } from '../context/PostContext';
 import postAPI from '../lib/api/post';
 import {
   GET_POSTS,
@@ -17,9 +17,9 @@ import PostsTable from './PostsTable';
 const Posts = () => {
   const navigate = useNavigate();
   const {
-    postState: { isLoading, isError, count },
-    dispatch,
-  } = usePost();
+    state: { isLoading, isError, count },
+  } = usePostState();
+  const { dispatch } = usePostDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(() => parseInt(searchParams.get('page')));
 

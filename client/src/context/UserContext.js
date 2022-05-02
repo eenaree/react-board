@@ -8,20 +8,35 @@ import React, {
 import PropTypes from 'prop-types';
 import axios from 'axios';
 
-const UserContext = createContext({
+const UserStateContext = createContext({
   user: '',
+});
+
+const UserUpdaterContext = createContext({
   setUser: () => {},
 });
 
-export default function () {
-  return useContext(UserContext);
-}
+export const useUserState = () => {
+  const state = useContext(UserStateContext);
+  if (!state) {
+    throw new Error('UserContextProvider can not found');
+  }
+  return useContext(UserStateContext);
+};
+
+export const useUserUpdater = () => {
+  const updater = useContext(UserUpdaterContext);
+  if (!updater) {
+    throw new Error('UserContextProvider can not found');
+  }
+  return updater;
+};
+
+const getStoragedUser = () => {
+  return JSON.parse(sessionStorage.getItem('user')) || null;
+};
 
 export const UserProvider = ({ children }) => {
-  function getStoragedUser() {
-    return JSON.parse(sessionStorage.getItem('user')) || null;
-  }
-
   const [user, setUser] = useState(getStoragedUser);
   const clientRef = useRef();
 
@@ -43,9 +58,11 @@ export const UserProvider = ({ children }) => {
   }, [user]);
 
   return (
-    <UserContext.Provider value={{ user, setUser, clientRef }}>
-      {children}
-    </UserContext.Provider>
+    <UserUpdaterContext.Provider value={{ setUser }}>
+      <UserStateContext.Provider value={{ user, clientRef }}>
+        {children}
+      </UserStateContext.Provider>
+    </UserUpdaterContext.Provider>
   );
 };
 

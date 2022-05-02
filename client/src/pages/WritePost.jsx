@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Button } from 'antd';
 import useInput from '../lib/hooks/useInput';
 import postAPI from '../lib/api/post';
-import usePost from '../context/PostContext';
+import { usePostDispatch, usePostState } from '../context/PostContext';
 import {
   EDIT_POST,
   EDIT_POST_FAILURE,
@@ -17,23 +17,24 @@ import FileUploader from '../components/FileUploader';
 import AttachedFiles from '../components/AttachedFiles';
 
 const WritePost = () => {
+  const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const {
-    postState: { post, newPost, isError },
-    dispatch,
-  } = usePost();
+    state: { post, newPost, isError },
+  } = usePostState();
+  const { dispatch } = usePostDispatch();
   const initialPostInput =
     location.pathname === '/board/write'
       ? { title: '', contents: '' }
       : { title: post.title, contents: post.contents };
   const [postInput, onChangePostInput] = useInput(initialPostInput);
   const [postFiles, setPostFiles] = useState([]);
-  let postTitleInput = null;
 
-  const setPostTitleInputRef = element => {
-    postTitleInput = element;
-  };
+  const postTitleInputRef = useRef(null);
+  const setPostTitleInputRef = useCallback(element => {
+    postTitleInputRef.current = element;
+  }, []);
 
   function onClickGoBack() {
     navigate(-1);
@@ -57,7 +58,7 @@ const WritePost = () => {
   function editPost(post) {
     dispatch({ type: EDIT_POST });
     postAPI
-      .editPost(post)
+      .editPost(params.id, post)
       .then(({ data }) => {
         if (data.success) {
           dispatch({ type: EDIT_POST_SUCCESS, post: data.post });
@@ -73,15 +74,12 @@ const WritePost = () => {
     e.preventDefault();
     if (!postInput.title) {
       alert('제목을 입력하세요');
-      return postTitleInput.focus();
+      return postTitleInputRef.current.focus();
     }
 
     const formData = new FormData();
     formData.append('title', postInput.title);
     formData.append('contents', postInput.contents);
-    if (post) {
-      formData.append('postId', post.id);
-    }
     if (postFiles) {
       postFiles.map(file => {
         formData.append('files', file);
@@ -148,7 +146,7 @@ const WritePost = () => {
         </div>
         <FileUploader setFiles={setPostFiles} />
       </form>
-      {location.pathname === '/board/edit' && (
+      {location.pathname === `/board/edit/${params.id}` && (
         <AttachedFiles files={post.Files} />
       )}
     </>

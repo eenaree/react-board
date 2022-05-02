@@ -30,7 +30,7 @@ const App = () => {
             }
           />
           <Route
-            path="edit"
+            path="edit/:id"
             element={
               <Authentication>
                 <WritePost />

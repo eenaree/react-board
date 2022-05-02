@@ -1,22 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Button, Col, Menu, Row } from 'antd';
-import useAuth from '../context/UserContext';
+import { useUserState, useUserUpdater } from '../context/UserContext';
 import userAPI from '../lib/api/user';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user } = useUserState();
+  const { setUser } = useUserUpdater();
 
   async function logoutUser() {
     try {
       const { data } = await userAPI.logout();
       if (data.success) {
-        navigate('/');
-        sessionStorage.removeItem('user');
-        setUser('');
+        setUser(null);
       }
     } catch (error) {
       console.error(error);
@@ -26,6 +25,13 @@ const Header = () => {
   function onClickLogout() {
     logoutUser();
   }
+
+  useEffect(() => {
+    if (!user) {
+      sessionStorage.removeItem('user');
+      navigate('/');
+    }
+  }, [user]);
 
   return (
     <header>

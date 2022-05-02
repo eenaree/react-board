@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Select, Button, Input } from 'antd';
 
@@ -10,7 +10,11 @@ const PostSearch = () => {
 
   const onChangeSearchType = value => setSearchType(value);
   const onChangeKeyword = e => setKeyword(e.target.value);
-  const setSearchInputRef = element => (searchInput = element);
+
+  const searchInputRef = useRef(null);
+  const setSearchInputRef = useCallback(element => {
+    searchInputRef.current = element;
+  }, []);
 
   const onSubmit = e => {
     e.preventDefault();

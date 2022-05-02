@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from 'antd';
-import useAuth from '../context/UserContext';
+import { useUserState } from '../context/UserContext';
 import postAPI from '../lib/api/post';
 import { useParams } from 'react-router-dom';
 import { css } from '@emotion/react';
 
 const PostRecommendation = ({ recommenders }) => {
   const params = useParams();
-  const { user } = useAuth();
+  const { user } = useUserState();
   const [isRecommended, setIsRecommended] = useState(getRecommendedStatus);
   const [recommendationCount, setRecommendationCount] = useState(
     recommenders.length
@@ -25,6 +25,7 @@ const PostRecommendation = ({ recommenders }) => {
       .recommendPost(id)
       .then(({ data }) => {
         if (data.success) {
+          setIsRecommended(prevState => !prevState);
           setRecommendationCount(prevCount => prevCount + 1);
         }
       })
@@ -38,6 +39,7 @@ const PostRecommendation = ({ recommenders }) => {
       .unrecommendPost(id)
       .then(({ data }) => {
         if (data.success) {
+          setIsRecommended(prevState => !prevState);
           setRecommendationCount(prevCount => prevCount - 1);
         }
       })
@@ -50,7 +52,6 @@ const PostRecommendation = ({ recommenders }) => {
     if (!user) {
       return alert('로그인이 필요합니다.');
     }
-    setIsRecommended(prevState => !prevState);
     isRecommended ? unrecommendPost(params.id) : recommendPost(params.id);
   }
 

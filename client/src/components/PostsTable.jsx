@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { css } from '@emotion/react';
-import usePost from '../context/PostContext';
+import { usePostState } from '../context/PostContext';
 
 const tableStyle = css`
   width: 100%;
@@ -23,8 +23,8 @@ const tableStyle = css`
 
 const PostsTable = () => {
   const {
-    postState: { posts },
-  } = usePost();
+    state: { posts },
+  } = usePostState();
 
   return (
     <table css={tableStyle}>

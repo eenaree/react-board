@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import PropTypes from 'prop-types';
-import useAuth from '../context/UserContext';
+import { useUserState } from '../context/UserContext';
 
 const CommentForm = ({ addComment, deleted }) => {
-  const { user } = useAuth();
+  const { user } = useUserState();
   const [comment, setComment] = useState('');
   const onChangeComment = e => setComment(e.target.value);
 

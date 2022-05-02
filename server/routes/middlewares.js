@@ -29,7 +29,7 @@ exports.isLoggedIn = async (req, res, next) => {
   try {
     if (!req.session.user) {
       return res
-        .status(403)
+        .status(401)
         .json({ success: false, message: '로그인 상태가 아닙니다.' });
     }
 

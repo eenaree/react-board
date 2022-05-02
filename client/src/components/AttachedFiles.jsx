@@ -83,7 +83,15 @@ const AttachedFiles = ({ files }) => {
 };
 
 AttachedFiles.propTypes = {
-  files: PropTypes.array.isRequired,
+  files: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      fileUrl: PropTypes.string.isRequired,
+      PostId: PropTypes.number.isRequired,
+      createdAt: PropTypes.string.isRequired,
+      updatedAt: PropTypes.string.isRequired,
+    })
+  ).isRequired,
 };
 
 export default AttachedFiles;

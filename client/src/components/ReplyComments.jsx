@@ -24,7 +24,7 @@ const ReplyComments = ({ deleted, commentId, replies, setReplyCount }) => {
   function addReplyComment(comment) {
     dispatch({ type: ADD_REPLY });
     postAPI
-      .addReplyComment({ commentId, comment })
+      .addReplyComment(commentId, comment)
       .then(({ data }) => {
         if (data.success) {
           dispatch({ type: ADD_REPLY_SUCCESS, reply: data.comment });

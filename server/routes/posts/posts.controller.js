@@ -9,7 +9,7 @@ exports.writePost = async (req, res) => {
       UserId: res.locals.user.id,
     });
 
-    const saveFiles = req.files.map((file) => {
+    const saveFiles = req.files.map(file => {
       File.create({ fileUrl: file.path, PostId: newPost.id });
     });
 
@@ -50,7 +50,7 @@ exports.getPosts = async (req, res) => {
 
 exports.getPost = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.query.postId, {
+    const post = await Post.findByPk(req.params.id, {
       attributes: {
         include: [
           [
@@ -68,7 +68,8 @@ exports.getPost = async (req, res) => {
         {
           model: User,
           as: 'recommenders',
-          attributes: { exclude: ['password'] },
+          attributes: ['id'],
+          through: { attributes: [] },
         },
         {
           model: Comment,
@@ -90,28 +91,33 @@ exports.getPost = async (req, res) => {
             {
               model: User,
               as: 'likers',
-              attributes: { exclude: ['password'] },
+              attributes: ['id'],
+              through: { attributes: [] },
             },
             {
               model: User,
               as: 'dislikers',
-              attributes: { exclude: ['password'] },
+              attributes: ['id'],
+              through: { attributes: [] },
             },
             {
               model: Comment,
               as: 'replies',
               paranoid: false,
+              through: { attributes: [] },
               include: [
                 { model: User, attributes: { exclude: ['password'] } },
                 {
                   model: User,
                   as: 'likers',
-                  attributes: { exclude: ['password'] },
+                  attributes: ['id'],
+                  through: { attributes: [] },
                 },
                 {
                   model: User,
                   as: 'dislikers',
-                  attributes: { exclude: ['password'] },
+                  attributes: ['id'],
+                  through: { attributes: [] },
                 },
               ],
               attributes: {
@@ -135,7 +141,7 @@ exports.getPost = async (req, res) => {
 
     if (!post) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '포스트가 존재하지 않습니다.' });
     }
     res.json({ success: true, post });
@@ -146,18 +152,17 @@ exports.getPost = async (req, res) => {
 
 exports.editPost = async (req, res) => {
   try {
-    const { postId, title, contents } = req.body;
-    const updatePost = Post.update(
-      { title, contents },
-      { where: { id: postId } }
+    await Post.update(
+      { title: req.body.title, contents: req.body.contents },
+      { where: { id: req.params.id } }
     );
-    const saveFiles = req.files.map((file) => {
-      File.create({ fileUrl: file.path, PostId: postId });
+    const saveFiles = req.files.map(file => {
+      File.create({ fileUrl: file.path, PostId: req.params.id });
     });
 
-    await Promise.all([updatePost, saveFiles]);
+    await Promise.all(saveFiles);
 
-    const updatedPost = await Post.findByPk(req.body.postId);
+    const updatedPost = await Post.findByPk(req.params.id);
     res.json({ success: true, message: '포스트 수정 성공', post: updatedPost });
   } catch (error) {
     console.error(error);
@@ -166,7 +171,7 @@ exports.editPost = async (req, res) => {
 
 exports.removePost = async (req, res) => {
   try {
-    await Post.destroy({ where: { id: req.body.postId } });
+    await Post.destroy({ where: { id: req.params.id } });
     res.json({ success: true, message: '포스트 삭제 성공' });
   } catch (error) {
     console.error(error);
@@ -175,10 +180,10 @@ exports.removePost = async (req, res) => {
 
 exports.recommendPost = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.body.postId);
+    const post = await Post.findByPk(req.params.id);
     if (!post) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '포스트가 존재하지 않습니다.' });
     }
 
@@ -191,10 +196,10 @@ exports.recommendPost = async (req, res) => {
 
 exports.unrecommendPost = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.body.postId);
+    const post = await Post.findByPk(req.params.id);
     if (!post) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '포스트가 존재하지 않습니다.' });
     }
 
@@ -216,7 +221,7 @@ exports.searchPost = async (req, res) => {
           [Op.or]: [
             { title: { [Op.substring]: req.query.keyword } },
             { contents: { [Op.substring]: req.query.keyword } },
-            { UserId: writer && writer.id },
+            { UserId: writer ? writer.id : 0 },
           ],
         },
         attributes: {
@@ -325,15 +330,20 @@ exports.searchPost = async (req, res) => {
 
 exports.addComment = async (req, res) => {
   try {
-    const post = Post.findByPk(req.body.postId);
-    const newComment = Comment.create({
+    const post = await Post.findByPk(req.params.id);
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: '포스트가 존재하지 않습니다.' });
+    }
+
+    const newComment = await Comment.create({
       comment: req.body.comment,
       UserId: res.locals.user.id,
+      PostId: post.id,
     });
-    const results = await Promise.all([post, newComment]);
-    await results[0].addComment(results[1]);
 
-    const commentWithUserInfo = await Comment.findByPk(results[1].id, {
+    const commentWithUserInfo = await Comment.findByPk(newComment.id, {
       attributes: {
         include: [
           [
@@ -348,8 +358,8 @@ exports.addComment = async (req, res) => {
       },
       include: [
         { model: User, attributes: { exclude: ['password'] } },
-        { model: User, as: 'likers', attributes: { exclude: ['password'] } },
-        { model: User, as: 'dislikers', attributes: { exclude: ['password'] } },
+        { model: User, as: 'likers' },
+        { model: User, as: 'dislikers' },
         { model: Comment, as: 'replies' },
       ],
     });
@@ -366,9 +376,9 @@ exports.addComment = async (req, res) => {
 
 exports.removeComment = async (req, res) => {
   try {
-    await Comment.destroy({ where: { id: req.body.commentId } });
+    await Comment.destroy({ where: { id: req.params.id } });
 
-    const removedComment = await Comment.findByPk(req.body.commentId, {
+    const removedComment = await Comment.findByPk(req.params.id, {
       paranoid: false,
     });
     res.json({
@@ -383,15 +393,20 @@ exports.removeComment = async (req, res) => {
 
 exports.addReplyComment = async (req, res) => {
   try {
-    const comment = Comment.findByPk(req.body.commentId);
-    const newReplyComment = Comment.create({
+    const comment = await Comment.findByPk(req.params.id);
+    if (!comment) {
+      return res
+        .status(404)
+        .json({ success: false, message: '댓글이 존재하지 않습니다.' });
+    }
+
+    const newReplyComment = await Comment.create({
       comment: req.body.comment,
       UserId: res.locals.user.id,
     });
-    const results = await Promise.all([comment, newReplyComment]);
-    await results[0].addReply(results[1]);
+    await comment.addReply(newReplyComment);
 
-    const commentWithUserInfo = await Comment.findByPk(results[1].id, {
+    const commentWithUserInfo = await Comment.findByPk(newReplyComment.id, {
       attributes: {
         include: [
           [
@@ -406,8 +421,8 @@ exports.addReplyComment = async (req, res) => {
       },
       include: [
         { model: User, attributes: { exclude: ['password'] } },
-        { model: User, as: 'likers', attributes: { exclude: ['password'] } },
-        { model: User, as: 'dislikers', attributes: { exclude: ['password'] } },
+        { model: User, as: 'likers' },
+        { model: User, as: 'dislikers' },
       ],
     });
     res.json({
@@ -422,9 +437,9 @@ exports.addReplyComment = async (req, res) => {
 
 exports.removeReplyComment = async (req, res) => {
   try {
-    await Comment.destroy({ where: { id: req.body.commentId } });
+    await Comment.destroy({ where: { id: req.params.id } });
 
-    const removedComment = await Comment.findByPk(req.body.commentId, {
+    const removedComment = await Comment.findByPk(req.params.id, {
       paranoid: false,
     });
     res.json({
@@ -439,35 +454,15 @@ exports.removeReplyComment = async (req, res) => {
 
 exports.addLikeComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.body.commentId, {
-      include: [
-        { model: User, as: 'likers' },
-        { model: User, as: 'dislikers' },
-      ],
-    });
+    const comment = await Comment.findByPk(req.params.id);
     if (!comment) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '댓글이 존재하지 않습니다.' });
     }
 
-    const isLiked = !!comment.likers.find(
-      (liker) => liker.id === res.locals.user.id
-    );
-    const isDisliked = !!comment.dislikers.find(
-      (disliker) => disliker.id === res.locals.user.id
-    );
-    const addLike = comment.addLiker(res.locals.user);
-    const removeDislike = comment.removeDisliker(res.locals.user.id);
-
-    if (isLiked === isDisliked) {
-      await addLike;
-      res.json({ success: true, message: '좋아요 추가 성공' });
-    } else if (isDisliked) {
-      Promise.all([removeDislike, addLike]).then(() => {
-        res.json({ success: true, message: '싫어요 제거, 좋아요 추가 성공' });
-      });
-    }
+    await comment.addLiker(res.locals.user);
+    res.json({ success: true, message: '좋아요 추가 성공' });
   } catch (error) {
     console.error(error);
   }
@@ -475,35 +470,15 @@ exports.addLikeComment = async (req, res) => {
 
 exports.addDislikeComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.body.commentId, {
-      include: [
-        { model: User, as: 'likers' },
-        { model: User, as: 'dislikers' },
-      ],
-    });
+    const comment = await Comment.findByPk(req.params.id);
     if (!comment) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '댓글이 존재하지 않습니다.' });
     }
 
-    const isLiked = !!comment.likers.find(
-      (liker) => liker.id === res.locals.user.id
-    );
-    const isDisliked = !!comment.dislikers.find(
-      (disliker) => disliker.id === res.locals.user.id
-    );
-    const addDislike = comment.addDisliker(res.locals.user);
-    const removeLike = comment.removeLiker(res.locals.user);
-
-    if (isLiked === isDisliked) {
-      await addDislike;
-      res.json({ success: true, message: '싫어요 추가 성공' });
-    } else if (isLiked) {
-      Promise.all([removeLike, addDislike]).then(() => {
-        res.json({ success: true, message: '좋아요 제거, 싫어요 추가 성공' });
-      });
-    }
+    await comment.addDisliker(res.locals.user);
+    res.json({ success: true, message: '싫어요 추가 성공' });
   } catch (error) {
     console.error(error);
   }
@@ -511,10 +486,10 @@ exports.addDislikeComment = async (req, res) => {
 
 exports.removeLikeComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.body.commentId);
+    const comment = await Comment.findByPk(req.params.id);
     if (!comment) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '댓글이 존재하지 않습니다.' });
     }
 
@@ -527,10 +502,10 @@ exports.removeLikeComment = async (req, res) => {
 
 exports.removeDislikeComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.body.commentId);
+    const comment = await Comment.findByPk(req.params.id);
     if (!comment) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '댓글이 존재하지 않습니다.' });
     }
 
@@ -543,7 +518,7 @@ exports.removeDislikeComment = async (req, res) => {
 
 exports.removeFile = async (req, res) => {
   try {
-    await File.destroy({ where: { id: req.body.fileId } });
+    await File.destroy({ where: { id: req.params.id } });
     res.json({ success: true, message: '첨부파일 삭제 성공' });
   } catch (error) {
     console.error(error);
@@ -552,7 +527,7 @@ exports.removeFile = async (req, res) => {
 
 exports.incrementViews = async (req, res) => {
   try {
-    await Post.increment({ views: 1 }, { where: { id: req.body.postId } });
+    await Post.increment({ views: 1 }, { where: { id: req.params.id } });
     res.json({ success: true, message: '포스트 조회수 1 증가 성공' });
   } catch (error) {
     console.error(error);

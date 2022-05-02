@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Comment } from 'antd';
 import { css } from '@emotion/react';
-import useAuth from '../context/UserContext';
+import { useUserState } from '../context/UserContext';
 import ReplyComments from './ReplyComments';
 import CommentLikeAndDislikeButton from './CommentLikeAndDislikeButton';
 
 const CommentBox = ({ comment, removeComment }) => {
-  const { user } = useAuth();
+  const { user } = useUserState();
   const [openReply, setOpenReply] = useState(false);
   const [replyCount, setReplyCount] = useState(
     comment.replies && comment.replies.length
@@ -72,7 +72,7 @@ const CommentBox = ({ comment, removeComment }) => {
           </button>
         )}
       </Comment>
-      {openReply && (
+      {comment.replies && openReply && (
         <ReplyComments
           deleted={!!comment.deletedAt}
           commentId={comment.id}
@@ -85,7 +85,50 @@ const CommentBox = ({ comment, removeComment }) => {
 };
 
 CommentBox.propTypes = {
-  comment: PropTypes.object.isRequired,
+  comment: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    comment: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    updatedAt: PropTypes.string.isRequired,
+    deletedAt: PropTypes.string,
+    UserId: PropTypes.number.isRequired,
+    User: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      email: PropTypes.string.isRequired,
+      nickname: PropTypes.string.isRequired,
+      createdAt: PropTypes.string.isRequired,
+      updatedAt: PropTypes.string.isRequired,
+    }),
+    likers: PropTypes.arrayOf(
+      PropTypes.shape({ id: PropTypes.number.isRequired })
+    ).isRequired,
+    dislikers: PropTypes.arrayOf(
+      PropTypes.shape({ id: PropTypes.number.isRequired })
+    ).isRequired,
+    replies: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        comment: PropTypes.string.isRequired,
+        createdAt: PropTypes.string.isRequired,
+        updatedAt: PropTypes.string.isRequired,
+        deletedAt: PropTypes.string,
+        UserId: PropTypes.number.isRequired,
+        User: PropTypes.shape({
+          id: PropTypes.number.isRequired,
+          email: PropTypes.string.isRequired,
+          nickname: PropTypes.string.isRequired,
+          createdAt: PropTypes.string.isRequired,
+          updatedAt: PropTypes.string.isRequired,
+        }),
+        likers: PropTypes.arrayOf(
+          PropTypes.shape({ id: PropTypes.number.isRequired })
+        ).isRequired,
+        dislikers: PropTypes.arrayOf(
+          PropTypes.shape({ id: PropTypes.number.isRequired })
+        ).isRequired,
+      })
+    ),
+  }).isRequired,
   removeComment: PropTypes.func.isRequired,
 };
 

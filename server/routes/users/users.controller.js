@@ -5,7 +5,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { email: req.body.email } });
     if (!user) {
       return res
-        .status(400)
+        .status(404)
         .json({ success: false, message: '존재하지 않는 계정입니다.' });
     }
 
@@ -60,7 +60,7 @@ exports.logout = async (req, res) => {
   try {
     if (!req.session.user) {
       return res
-        .status(403)
+        .status(401)
         .json({ success: false, message: '로그인 상태가 아닙니다.' });
     }
     req.session.destroy();

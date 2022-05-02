@@ -1,34 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Alert } from 'antd';
 import { Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import TextField from '../components/TextField';
-import useAuth from '../context/UserContext';
+import { useUserState, useUserUpdater } from '../context/UserContext';
 import userAPI from '../lib/api/user';
+
+const userFormSchema = Yup.object({
+  email: Yup.string()
+    .email('이메일 주소가 유효하지 않습니다.')
+    .required('필수 입력 항목입니다.'),
+  password: Yup.string()
+    .min(8, '최소 8자 이상이어야 합니다.')
+    .required('필수 입력 항목입니다.'),
+});
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState('');
-  const { user, setUser } = useAuth();
+  const { user } = useUserState();
+  const { setUser } = useUserUpdater();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state && location.state.from) || '/';
-  const userFormSchema = Yup.object({
-    email: Yup.string()
-      .email('이메일 주소가 유효하지 않습니다.')
-      .required('필수 입력 항목입니다.'),
-    password: Yup.string()
-      .min(8, '최소 8자 이상이어야 합니다.')
-      .required('필수 입력 항목입니다.'),
-  });
+  const fromRef = useRef((location.state && location.state.from) || '/');
 
   async function loginUser(userInfo) {
     try {
       const { data } = await userAPI.login(userInfo);
       if (data.success) {
         setUser(data.user);
-        sessionStorage.setItem('user', JSON.stringify(data.user));
       }
     } catch (error) {
       console.error(error);
@@ -40,9 +41,10 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (user) {
-      navigate(from, { replace: true });
+      sessionStorage.setItem('user', JSON.stringify(user));
+      navigate(fromRef.current, { replace: true });
     }
-  }, [user, from]);
+  }, [user]);
 
   return (
     <>

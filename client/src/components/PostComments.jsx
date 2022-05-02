@@ -26,7 +26,7 @@ const PostComments = ({ comments }) => {
   function addComment(comment) {
     dispatch({ type: ADD_COMMENT });
     postAPI
-      .addComment({ postId: params.id, comment })
+      .addComment(params.id, comment)
       .then(({ data }) => {
         if (data.success) {
           dispatch({ type: ADD_COMMENT_SUCCESS, comment: data.comment });

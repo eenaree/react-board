@@ -22,7 +22,8 @@ const buttonStyle = css`
 const LikeAndDislikeButton = ({
   onClickLike,
   onClickDislike,
-  likeAction,
+  likeAction = null,
+  dislikeAction = null,
   likers,
   dislikers,
 }) => {
@@ -33,7 +34,7 @@ const LikeAndDislikeButton = ({
         <span>{likers}</span>
       </button>
       <button onClick={onClickDislike} css={buttonStyle}>
-        {likeAction === 'disliked' ? <DislikeFilled /> : <DislikeOutlined />}
+        {dislikeAction === 'disliked' ? <DislikeFilled /> : <DislikeOutlined />}
         <span>{dislikers}</span>
       </button>
     </>
@@ -43,7 +44,8 @@ const LikeAndDislikeButton = ({
 LikeAndDislikeButton.propTypes = {
   onClickLike: PropTypes.func.isRequired,
   onClickDislike: PropTypes.func.isRequired,
-  likeAction: PropTypes.oneOf(['liked', 'disliked']),
+  likeAction: PropTypes.oneOf(['liked']),
+  dislikeAction: PropTypes.oneOf(['disliked']),
   likers: PropTypes.number.isRequired,
   dislikers: PropTypes.number.isRequired,
 };

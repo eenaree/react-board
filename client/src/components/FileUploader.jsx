@@ -2,6 +2,26 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { css } from '@emotion/react';
 
+const validateFileType = file => {
+  const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
+  return allowedFileTypes.includes(file.type);
+};
+
+const readFile = file => {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+    fileReader.onload = e => {
+      const fileData = {
+        url: e.target.result,
+        filename: file.name,
+      };
+      resolve(fileData);
+    };
+    fileReader.onerror = reject;
+  });
+};
+
 const FileUploader = ({ setFiles }) => {
   const [previewImages, setPreviewImages] = useState(null);
 
@@ -24,11 +44,6 @@ const FileUploader = ({ setFiles }) => {
     }
     readAndPreviewFiles(filesArray);
     setFiles(filesArray);
-  };
-
-  const validateFileType = file => {
-    const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
-    return allowedFileTypes.includes(file.type);
   };
 
   const readAndPreviewFiles = files => {
@@ -63,21 +78,6 @@ const FileUploader = ({ setFiles }) => {
       .catch(error => {
         console.error(error);
       });
-  };
-
-  const readFile = file => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-      fileReader.readAsDataURL(file);
-      fileReader.onload = e => {
-        const fileData = {
-          url: e.target.result,
-          filename: file.name,
-        };
-        resolve(fileData);
-      };
-      fileReader.onerror = reject;
-    });
   };
 
   return (

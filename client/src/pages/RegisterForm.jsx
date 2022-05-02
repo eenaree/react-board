@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { Alert, message } from 'antd';
@@ -7,30 +7,31 @@ import * as Yup from 'yup';
 import TextField from '../components/TextField';
 import userAPI from '../lib/api/user';
 
+const userFormSchema = Yup.object({
+  email: Yup.string()
+    .email('이메일 주소가 유효하지 않습니다.')
+    .required('필수 입력 항목입니다.'),
+  password: Yup.string()
+    .min(8, '최소 8자 이상이어야 합니다.')
+    .required('필수 입력 항목입니다.'),
+  confirm: Yup.string()
+    .oneOf([Yup.ref('password')], '비밀번호가 일치하지 않습니다.')
+    .required('필수 입력 항목입니다.'),
+  nickname: Yup.string()
+    .min(2, '최소 2자 이상이어야 합니다.')
+    .required('필수 입력 항목입니다.'),
+});
+
 const RegisterForm = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
-  const userFormSchema = Yup.object({
-    email: Yup.string()
-      .email('이메일 주소가 유효하지 않습니다.')
-      .required('필수 입력 항목입니다.'),
-    password: Yup.string()
-      .min(8, '최소 8자 이상이어야 합니다.')
-      .required('필수 입력 항목입니다.'),
-    confirm: Yup.string()
-      .oneOf([Yup.ref('password')], '비밀번호가 일치하지 않습니다.')
-      .required('필수 입력 항목입니다.'),
-    nickname: Yup.string()
-      .min(2, '최소 2자 이상이어야 합니다.')
-      .required('필수 입력 항목입니다.'),
-  });
-  let timer;
+  const timerRef = useRef();
 
   async function registerUser(userInfo) {
     try {
       const { data } = await userAPI.register(userInfo);
-      if (data) {
-        processRegister(data.success);
+      if (data.success) {
+        processRegister();
       }
     } catch (error) {
       console.error(error);
@@ -40,29 +41,23 @@ const RegisterForm = () => {
     }
   }
 
-  function processRegister(result) {
+  function processRegister() {
     const key = 'register result';
-
-    function processRegisterSuccess(key) {
+    function processRegisterSuccess() {
       message.success({ content: '회원가입 성공', key });
       navigate('/');
     }
 
-    function processRegisterFailure(key) {
-      message.error({ content: '회원가입 실패', key });
-    }
-
     message.loading({ content: '회원가입 처리 중...', key });
-
-    if (result) {
-      timer = setTimeout(processRegisterSuccess, 1000, key);
-    } else {
-      timer = setTimeout(processRegisterFailure, 1000, key);
-    }
+    timerRef.current = setTimeout(processRegisterSuccess, 1000);
   }
 
   useEffect(() => {
-    return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, []);
 
   return (
