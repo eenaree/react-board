@@ -57,6 +57,7 @@ const FileUploader = ({ setFiles }) => {
               border-top: 1px solid #eee;
               height: 50px;
             `}
+            key={index}
           >
             <img
               key={index}
