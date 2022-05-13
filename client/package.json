@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack serve --mode development",
-    "build": "webpack --mode production"
+    "dev": "webpack serve --node-env=development",
+    "build": "webpack --node-env=production"
   },
   "author": "eenaree",
   "license": "ISC",
@@ -29,7 +29,7 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
     "@babel/runtime-corejs3": "^7.17.7",
-    "@emotion/babel-preset-css-prop": "^11.2.0",
+    "@emotion/babel-plugin": "^11.9.2",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "babel-loader": "^8.2.3",
     "clean-webpack-plugin": "^4.0.0",
@@ -47,6 +47,7 @@
     "react-refresh": "^0.10.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.70.0",
+    "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.7.4",
     "webpack-merge": "^5.8.0"

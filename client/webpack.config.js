@@ -3,9 +3,13 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin =
+  require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const webpack = require('webpack');
 const { merge } = require('webpack-merge');
 require('dotenv').config();
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const commonConfig = {
   resolve: {
@@ -38,25 +42,34 @@ const commonConfig = {
                   importSource: '@emotion/react',
                 },
               ],
-              '@emotion/babel-preset-css-prop',
             ],
-            plugins: [
-              'react-refresh/babel',
-              [
-                '@babel/plugin-transform-runtime',
-                {
-                  corejs: 3,
-                },
-              ],
-              '@emotion',
-            ],
+            env: {
+              development: {
+                plugins: [
+                  require.resolve('react-refresh/babel'),
+                  ['@babel/plugin-transform-runtime', { corejs: 3 }],
+                  [
+                    '@emotion',
+                    { labelFormat: '[dirname]-[filename]--[local]' },
+                  ],
+                ],
+              },
+              production: {
+                plugins: [
+                  ['@babel/plugin-transform-runtime', { corejs: 3 }],
+                  '@emotion',
+                ],
+              },
+            },
           },
         },
       },
       {
         test: /\.css$/i,
-        exclude: /node_modules/,
-        use: ['style-loader', 'css-loader'],
+        use: [
+          isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
+          'css-loader',
+        ],
       },
       {
         test: /\.(jpe?g|gif|png|svg|ico)?$/i,
@@ -81,15 +94,18 @@ const commonConfig = {
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(process.env),
     }),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: isDevelopment ? 'development' : 'production',
+    }),
   ],
 };
 
 const developmentConfig = {
   mode: 'development',
-  devtool: 'eval',
-  plugins: [new ReactRefreshWebpackPlugin()],
+  devtool: 'eval-source-map',
+  plugins: [new ReactRefreshWebpackPlugin(), new BundleAnalyzerPlugin()],
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'build'),
     filename: '[name].[chunkhash].js',
     publicPath: '/',
   },
@@ -109,20 +125,23 @@ const productionConfig = {
   mode: 'production',
   devtool: 'hidden-source-map',
   plugins: [
+    new BundleAnalyzerPlugin({ analyzerMode: 'static' }),
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',
     }),
   ],
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'build'),
     filename: '[name].[chunkhash].js',
   },
 };
 
-module.exports = (env, argv) => {
-  if (argv.mode === 'production') {
-    return merge(commonConfig, productionConfig);
+const config = () => {
+  if (isDevelopment) {
+    return merge(commonConfig, developmentConfig);
   }
-  return merge(commonConfig, developmentConfig);
+  return merge(commonConfig, productionConfig);
 };
+
+module.exports = config;
