@@ -52,7 +52,12 @@ const FileUploader = ({ setFiles }) => {
       const imageArray = [];
       files.map((file, index) => {
         const imageElement = (
-          <>
+          <div
+            css={css`
+              border-top: 1px solid #eee;
+              height: 50px;
+            `}
+          >
             <img
               key={index}
               src={file.url}
@@ -64,7 +69,7 @@ const FileUploader = ({ setFiles }) => {
               `}
             />
             <span>{file.filename}</span>
-          </>
+          </div>
         );
         imageArray.push(imageElement);
       });
@@ -115,19 +120,7 @@ const FileUploader = ({ setFiles }) => {
         />
       </p>
       {previewImages ? (
-        <div>
-          {previewImages.map((image, index) => (
-            <div
-              key={index}
-              css={css`
-                border-top: 1px solid #eee;
-                height: 50px;
-              `}
-            >
-              {image}
-            </div>
-          ))}
-        </div>
+        <div>{previewImages}</div>
       ) : (
         <div>선택한 파일이 없습니다.</div>
       )}
